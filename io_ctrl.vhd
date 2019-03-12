@@ -20,8 +20,8 @@ entity io_ctrl is
 		clk4 : out std_logic;		
 		/* ethernet */
 		eth_sck : out std_logic;
-		eth_so : out std_logic;
-		eth_si : in std_logic;
+		eth_so : in std_logic;
+		eth_si : out std_logic;
 		eth_cs : out std_logic;
 		/* sd card */
 		sd_miso : in std_logic;
@@ -86,8 +86,9 @@ component addr_ctrl is
 		addr_hi : in std_logic_vector(31 downto 28);
 		
 		gpio_cs : out std_logic;
-		spi_cs : out std_logic;
-		irq_cs : out std_logic
+		spi0_cs : out std_logic;
+		spi1_cs : out std_logic;
+		iack_cs : out std_logic
 	);
 end component;
 
@@ -117,13 +118,15 @@ component spi_ctrl is
 	);
 end component;
 
-signal gpio_cs, spi_cs, irq_cs : std_logic;
+signal gpio_cs, spi0_cs, spi1_cs, iack_cs : std_logic;
 signal dsack_i : std_logic;
 signal cs : std_logic;
 
+signal clk4_i : std_logic := '0';
+
 begin
 
-cs <= gpio_cs or spi_cs or irq_cs;
+cs <= gpio_cs or spi0_cs or spi1_cs or iack_cs;
 
 doe <= not cs;
 ddir <= not rw;
@@ -139,7 +142,8 @@ ssg_cs <= '1';
 ym_cs <= '1';
 ym_rw <= '1';
 ym_rd <= '1';
-clk4 <= '1';
+
+clk4 <= clk4_i;
 
 mirq <= 'Z';
 
@@ -170,21 +174,22 @@ addrc : addr_ctrl port map (
 	addr_mi => addr_mi,
 	addr_hi => addr_hi,
 	gpio_cs => gpio_cs,
-	spi_cs => spi_cs,
-	irq_cs => irq_cs
+	spi0_cs => spi0_cs,
+	spi1_cs => spi1_cs,
+	iack_cs => iack_cs
 );
 
 irqc : irq_ctrl port map (
-	cs => irq_cs,
+	cs => iack_cs,
 	rw => rw,
 	addr => addr_lo,
 	data => data
 );
 
-spic : spi_ctrl port map (
+spi0 : spi_ctrl port map (
 	clk => clk,
 	rstn => rstn,
-	cs => spi_cs,
+	cs => spi0_cs,
 	rw => rw,
 	addr => addr_lo,
 	data => data,
@@ -192,6 +197,19 @@ spic : spi_ctrl port map (
 	miso => sd_miso,
 	sck => sd_sck,
 	ss => sd_cs
+);
+
+spi1 : spi_ctrl port map (
+	clk => clk,
+	rstn => rstn,
+	cs => spi1_cs,
+	rw => rw,
+	addr => addr_lo,
+	data => data,
+	mosi => eth_si,
+	miso => eth_so,
+	sck => eth_sck,
+	ss => eth_cs
 );
 
 dsackc : process(rstn, clk, cs)
@@ -203,6 +221,22 @@ begin
 	elsif(rising_edge(clk))then
 		if(cnt = 2)then
 			dsack_i <= '0';
+		else
+			cnt := cnt + 1;
+		end if;
+	end if;
+end process;
+
+clk4_gen : process(rstn, clk)
+variable cnt : integer range 0 to 1;
+begin
+	if(rstn = '0')then
+		cnt := 0;
+		clk4_i <= '0';
+	elsif(rising_edge(clk))then
+		if(cnt = 1)then
+			cnt := 0;
+			clk4_i <= not clk4_i;
 		else
 			cnt := cnt + 1;
 		end if;

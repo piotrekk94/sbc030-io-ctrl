@@ -17,8 +17,9 @@ entity addr_ctrl is
 		addr_hi : in std_logic_vector(31 downto 28);
 		
 		gpio_cs : out std_logic;
-		spi_cs : out std_logic;
-		irq_cs : out std_logic
+		spi0_cs : out std_logic;
+		spi1_cs : out std_logic;
+		iack_cs : out std_logic
 	);
 end;
 
@@ -43,23 +44,27 @@ process(clk, rstn)
 begin
 	if(as = '1')then
 		gpio_cs <= '0';
-		spi_cs <= '0';
-		irq_cs <= '0';
+		spi0_cs <= '0';
+		spi1_cs <= '0';
+		iack_cs <= '0';
 	elsif(rising_edge(clk))then
 		gpio_cs <= '0';
-		spi_cs <= '0';
-		irq_cs <= '0';
+		spi0_cs <= '0';
+		spi1_cs <= '0';
+		iack_cs <= '0';
 		if(as_dd = '0')then
 			if(fc = "11")then
 				if(addr_mi = "1111")then
-					--irq_cs <= '1';
-					irq_cs <= '0';
+					--iack_cs <= '1';
+					iack_cs <= '0';
 				end if;
 			elsif(addr_hi = "1110")then
 				if(addr_mi = "0000")then
 					gpio_cs <= '1';
 				elsif(addr_mi = "0001")then
-					spi_cs <= '1';
+					spi0_cs <= '1';
+				elsif(addr_mi = "0010")then
+					spi1_cs <= '1';
 				end if;
 			end if;
 		end if;
