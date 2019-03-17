@@ -55,8 +55,7 @@ begin
 		if(as_dd = '0')then
 			if(fc = "11")then
 				if(addr_mi = "1111")then
-					--iack_cs <= '1';
-					iack_cs <= '0';
+					iack_cs <= '1';
 				end if;
 			elsif(addr_hi = "1110")then
 				if(addr_mi = "0000")then
