@@ -50,25 +50,11 @@ entity io_ctrl is
 		boe : out std_logic;
 		brw : out std_logic;
 		/* gpio */
-		gpio : inout std_logic_vector(3 downto 0)
+		gpio : in std_logic_vector(3 downto 0)
 	);
 end;
 
 architecture arch of io_ctrl is
-
-component gpio_ctrl is
-	port (
-		clk : in std_logic;
-		rstn : in std_logic;
-		
-		cs : in std_logic;
-		rw : in std_logic;
-		addr : in std_logic_vector(3 downto 0);
-		data : inout std_logic_vector(7 downto 0);
-
-		gpio : inout std_logic_vector(3 downto 0)
-	);
-end component;
 
 component addr_ctrl is
 	port (
@@ -124,6 +110,10 @@ signal cs : std_logic;
 
 signal clk4_i : std_logic := '0';
 
+signal eth_irq_d, eth_irq_dd : std_logic;
+
+signal eth_irq : std_logic;
+
 begin
 
 cs <= gpio_cs or spi0_cs or spi1_cs or iack_cs;
@@ -145,7 +135,7 @@ ym_rd <= '1';
 
 clk4 <= clk4_i;
 
-mirq <= 'Z';
+mirq <= eth_irq;
 
 dsack(1) <= 'Z';
 dsack(0) <= '0' when dsack_i = '0' and as = '0' else 'Z';
@@ -153,6 +143,32 @@ dsack(0) <= '0' when dsack_i = '0' and as = '0' else 'Z';
 brw <= rw;
 boe <= not rw;
 
+eth_irqc : process(rstn, clk)
+begin
+	if(rstn = '0')then
+		eth_irq <= '1';
+	elsif(rising_edge(clk))then
+		if(eth_irq_dd = '1' and eth_irq_d = '0')then
+			eth_irq <= '0';
+		end if;
+		if(fc = "11" and addr_lo(3 downto 1) = "011")then
+			eth_irq <= '1';
+		end if;
+	end if;
+end process;
+
+eth_irq_ed : process(rstn, clk)
+begin
+	if(rstn = '0')then
+		eth_irq_d <= '1';
+		eth_irq_dd <= '1';
+	elsif(rising_edge(clk))then
+		eth_irq_d <= gpio(2);
+		eth_irq_dd <= eth_irq_d;
+	end if;
+end process;
+
+/*
 gpioc : gpio_ctrl port map (
 	clk => clk,
 	rstn => rstn,
@@ -162,6 +178,7 @@ gpioc : gpio_ctrl port map (
 	data => data,
 	gpio => gpio
 );
+*/
 
 addrc : addr_ctrl port map (
 	clk => clk,
