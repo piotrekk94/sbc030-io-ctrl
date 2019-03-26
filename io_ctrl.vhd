@@ -23,6 +23,8 @@ entity io_ctrl is
 		eth_so : in std_logic;
 		eth_si : out std_logic;
 		eth_cs : out std_logic;
+		eth_rst : out std_logic;
+		eth_int : in std_logic;
 		/* sd card */
 		sd_miso : in std_logic;
 		sd_mosi : out std_logic;
@@ -50,7 +52,7 @@ entity io_ctrl is
 		boe : out std_logic;
 		brw : out std_logic;
 		/* gpio */
-		gpio : in std_logic_vector(3 downto 0)
+		gpio : inout std_logic_vector(1 downto 0)
 	);
 end;
 
@@ -133,6 +135,10 @@ ym_cs <= '1';
 ym_rw <= '1';
 ym_rd <= '1';
 
+eth_rst <= rstn;
+
+gpio <= "ZZ";
+
 clk4 <= clk4_i;
 
 mirq <= eth_irq;
@@ -163,7 +169,7 @@ begin
 		eth_irq_d <= '1';
 		eth_irq_dd <= '1';
 	elsif(rising_edge(clk))then
-		eth_irq_d <= gpio(2);
+		eth_irq_d <= eth_int;
 		eth_irq_dd <= eth_irq_d;
 	end if;
 end process;

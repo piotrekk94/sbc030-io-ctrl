@@ -111,8 +111,6 @@ set_location_assignment PIN_41 -to data[1]
 set_location_assignment PIN_44 -to data[0]
 set_location_assignment PIN_74 -to gpio[0]
 set_location_assignment PIN_73 -to gpio[1]
-set_location_assignment PIN_65 -to gpio[2]
-set_location_assignment PIN_77 -to gpio[3]
 set_global_assignment -name VHDL_FILE gpio_ctrl.vhd
 set_global_assignment -name VHDL_FILE addr_ctrl.vhd
 set_global_assignment -name VHDL_FILE irq_ctrl.vhd
@@ -123,3 +121,5 @@ set_global_assignment -name MAX7000_OPTIMIZATION_TECHNIQUE SPEED
 set_global_assignment -name SYNTH_TIMING_DRIVEN_SYNTHESIS OFF
 set_global_assignment -name AUTO_LCELL_INSERTION ON
 set_global_assignment -name AUTO_RESOURCE_SHARING ON
+set_location_assignment PIN_77 -to eth_rst
+set_location_assignment PIN_65 -to eth_int
