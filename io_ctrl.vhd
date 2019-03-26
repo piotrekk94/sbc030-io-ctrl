@@ -245,13 +245,13 @@ begin
 end process;
 
 clk4_gen : process(rstn, clk)
-variable cnt : integer range 0 to 1;
+variable cnt : integer range 0 to 9;
 begin
 	if(rstn = '0')then
 		cnt := 0;
 		clk4_i <= '0';
 	elsif(rising_edge(clk))then
-		if(cnt = 1)then
+		if(cnt = 9)then
 			cnt := 0;
 			clk4_i <= not clk4_i;
 		else
