@@ -106,6 +106,8 @@ component spi_ctrl is
 	);
 end component;
 
+constant dsack_wait_max : integer := 2;
+
 signal gpio_cs, spi0_cs, spi1_cs, iack_cs : std_logic;
 signal dsack_i : std_logic;
 signal cs : std_logic;
@@ -236,13 +238,13 @@ spi1 : spi_ctrl port map (
 );
 
 dsackc : process(rstn, clk, cs)
-variable cnt : integer range 0 to 3;
+variable cnt : integer range 0 to dsack_wait_max;
 begin
 	if(rstn = '0' or cs = '0')then
 		cnt := 0;
 		dsack_i <= '1';
 	elsif(rising_edge(clk))then
-		if(cnt = 2)then
+		if(cnt = dsack_wait_max)then
 			dsack_i <= '0';
 		else
 			cnt := cnt + 1;
