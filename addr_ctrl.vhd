@@ -19,7 +19,8 @@ entity addr_ctrl is
 		gpio_cs : out std_logic;
 		spi0_cs : out std_logic;
 		spi1_cs : out std_logic;
-		iack_cs : out std_logic
+		iack_cs : out std_logic;
+		vga_cs : out std_logic
 	);
 end;
 
@@ -47,11 +48,13 @@ begin
 		spi0_cs <= '0';
 		spi1_cs <= '0';
 		iack_cs <= '0';
+		vga_cs <= '0';
 	elsif(rising_edge(clk))then
 		gpio_cs <= '0';
 		spi0_cs <= '0';
 		spi1_cs <= '0';
 		iack_cs <= '0';
+		vga_cs <= '0';
 		if(as_dd = '0')then
 			if(fc = "11")then
 				if(addr_mi = "1111")then
@@ -64,6 +67,8 @@ begin
 					spi0_cs <= '1';
 				elsif(addr_mi = "0010")then
 					spi1_cs <= '1';
+				elsif(addr_mi = "1000")then
+					vga_cs <= '1';
 				end if;
 			end if;
 		end if;

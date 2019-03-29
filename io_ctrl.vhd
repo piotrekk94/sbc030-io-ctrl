@@ -76,7 +76,8 @@ component addr_ctrl is
 		gpio_cs : out std_logic;
 		spi0_cs : out std_logic;
 		spi1_cs : out std_logic;
-		iack_cs : out std_logic
+		iack_cs : out std_logic;
+		vga_cs : out std_logic
 	);
 end component;
 
@@ -107,9 +108,11 @@ component spi_ctrl is
 end component;
 
 constant dsack_wait_max : integer := 2;
+constant dsack_wait_vga_max : integer := 4;
 
-signal gpio_cs, spi0_cs, spi1_cs, iack_cs : std_logic;
+signal gpio_cs, spi0_cs, spi1_cs, iack_cs, vga_cs : std_logic;
 signal dsack_i : std_logic;
+signal dsack_vga : std_logic;
 signal cs : std_logic;
 
 signal clk4_i : std_logic := '0';
@@ -122,13 +125,13 @@ begin
 
 cs <= gpio_cs or spi0_cs or spi1_cs or iack_cs;
 
-doe <= not cs;
+doe <= '0' when cs = '1' or vga_cs = '1' else '1';
 ddir <= not rw;
 
-/* video - unused */
-vcs <= '1';
-vub <= '1';
-vlb <= '1';
+/* video */
+vcs <= not vga_cs;
+vub <= '0' when addr_lo(0) = '0' or rw = '1' else '1';
+vlb <= '0' when addr_lo(0) = '1' or siz /= "01" or rw = '1' else '1';
 mode <= "11";
 /* audio - unused */
 arst <= '1';
@@ -145,7 +148,7 @@ clk4 <= clk4_i;
 
 mirq <= eth_irq;
 
-dsack(1) <= 'Z';
+dsack(1) <= dsack_vga or as;
 dsack(0) <= '0' when dsack_i = '0' and as = '0' else 'Z';
 
 brw <= rw;
@@ -201,7 +204,8 @@ addrc : addr_ctrl port map (
 	gpio_cs => gpio_cs,
 	spi0_cs => spi0_cs,
 	spi1_cs => spi1_cs,
-	iack_cs => iack_cs
+	iack_cs => iack_cs,
+	vga_cs => vga_cs
 );
 
 irqc : irq_ctrl port map (
@@ -246,6 +250,21 @@ begin
 	elsif(rising_edge(clk))then
 		if(cnt = dsack_wait_max)then
 			dsack_i <= '0';
+		else
+			cnt := cnt + 1;
+		end if;
+	end if;
+end process;
+
+dsackc_vga : process(rstn, clk, vga_cs)
+variable cnt : integer range 0 to dsack_wait_vga_max;
+begin
+	if(rstn = '0' or vga_cs = '0')then
+		cnt := 0;
+		dsack_vga <= '1';
+	elsif(rising_edge(clk))then
+		if(cnt = dsack_wait_vga_max)then
+			dsack_vga <= '0';
 		else
 			cnt := cnt + 1;
 		end if;
