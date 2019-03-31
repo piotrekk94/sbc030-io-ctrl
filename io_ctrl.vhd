@@ -90,6 +90,21 @@ component irq_ctrl is
 	);
 end component;
 
+component gpio_ctrl is
+	port (
+		clk : in std_logic;
+		rstn : in std_logic;
+		
+		cs : in std_logic;
+		rw : in std_logic;
+		addr : in std_logic_vector(3 downto 0);
+		data : inout std_logic_vector(7 downto 0);
+
+		gpio : inout std_logic_vector(1 downto 0);
+		mode : out std_logic_vector(1 downto 0)
+	);
+end component;
+
 component spi_ctrl is
 	port (
 		clk : in std_logic;
@@ -132,17 +147,14 @@ ddir <= not rw;
 vcs <= not vga_cs;
 vub <= '0' when addr_lo(0) = '0' or rw = '1' else '1';
 vlb <= '0' when addr_lo(0) = '1' or siz /= "01" or rw = '1' else '1';
-mode <= "11";
 /* audio - unused */
-arst <= '1';
+arst <= rstn;
 ssg_cs <= '1';
 ym_cs <= '1';
 ym_rw <= '1';
 ym_rd <= '1';
 
 eth_rst <= rstn;
-
-gpio <= "ZZ";
 
 clk4 <= clk4_i;
 
@@ -179,7 +191,6 @@ begin
 	end if;
 end process;
 
-/*
 gpioc : gpio_ctrl port map (
 	clk => clk,
 	rstn => rstn,
@@ -187,9 +198,9 @@ gpioc : gpio_ctrl port map (
 	rw => rw,
 	addr => addr_lo,
 	data => data,
-	gpio => gpio
+	gpio => gpio,
+	mode => mode
 );
-*/
 
 addrc : addr_ctrl port map (
 	clk => clk,
