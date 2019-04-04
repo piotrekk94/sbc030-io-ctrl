@@ -10,6 +10,7 @@ entity io_ctrl is
 		vcs : out std_logic;
 		vub : out std_logic;
 		vlb : out std_logic;
+		vbusy : in std_logic;
 		mode : out std_logic_vector(1 downto 0);
 		/* audio */
 		arst : out std_logic;
@@ -270,7 +271,7 @@ end process;
 dsackc_vga : process(rstn, clk, vga_cs)
 variable cnt : integer range 0 to dsack_wait_vga_max;
 begin
-	if(rstn = '0' or vga_cs = '0')then
+	if(rstn = '0' or vga_cs = '0' or vbusy = '0')then
 		cnt := 0;
 		dsack_vga <= '1';
 	elsif(rising_edge(clk))then

@@ -123,3 +123,4 @@ set_global_assignment -name AUTO_LCELL_INSERTION ON
 set_global_assignment -name AUTO_RESOURCE_SHARING ON
 set_location_assignment PIN_77 -to eth_rst
 set_location_assignment PIN_65 -to eth_int
+set_location_assignment PIN_84 -to vbusy
